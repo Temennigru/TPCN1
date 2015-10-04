@@ -4,6 +4,7 @@ import random
 from datetime import datetime
 import time
 import sys
+import threading
 
 # Set seed as time
 random.seed(datetime.now())
@@ -582,7 +583,10 @@ class Experiment():
 
 
 
-
+point_set1 = gen_points("datasets-TP1/SR_circle.txt")
+point_set2 = gen_points("datasets-TP1/SR_div.txt")
+point_set3 = gen_points("datasets-TP1/SR_ellipse_noise.txt")
+point_set4 = gen_points("datasets-TP1/SR_div_noise.txt")
 
 
 
@@ -632,21 +636,29 @@ for i in range(5):
 
 
 
+		threads = [0, 0, 0, 0]
 
 
+		exp1 = Experiment(pars[0], pars[1], pars[2], pars[3], pars[4], pars[5], pars[6], pars[7])
+		threads[0] = threading.Thread(target=exp1.run, args=(point_set1, True,))
+		threads[0].start()
 
-		exp = Experiment(pars[0], pars[1], pars[2], pars[3], pars[4], pars[5], pars[6], pars[7])
-		exp.run(gen_points("datasets-TP1/SR_circle.txt"), True)
-		exp.output("outputs/data" + str(i) + "." + str(j) + "_circle.txt", "outputs/stats" + str(i) + "." + str(j) + "_circle.txt")
+		exp2 = Experiment(pars[0], pars[1], pars[2], pars[3], pars[4], pars[5], pars[6], pars[7])
+		threads[1] = threading.Thread(target=exp2.run, args=(point_set2, True,))
+		threads[1].start()
 
-		exp = Experiment(pars[0], pars[1], pars[2], pars[3], pars[4], pars[5], pars[6], pars[7])
-		exp.run(gen_points("datasets-TP1/SR_div.txt"), True)
-		exp.output("outputs/data" + str(i) + "." + str(j) + "_div.txt", "outputs/stats" + str(i) + "." + str(j) + "_div.txt")
+		exp3 = Experiment(pars[0], pars[1], pars[2], pars[3], pars[4], pars[5], pars[6], pars[7])
+		threads[2] = threading.Thread(target=exp3.run, args=(point_set3, True,))
+		threads[2].start()
 
-		exp = Experiment(pars[0], pars[1], pars[2], pars[3], pars[4], pars[5], pars[6], pars[7])
-		exp.run(gen_points("datasets-TP1/SR_elipse_noise.txt"), True)
-		exp.output("outputs/data" + str(i) + "." + str(j) + "_elipse_noise.txt", "outputs/stats" + str(i) + "." + str(j) + "_elipse_noise.txt")
+		exp4 = Experiment(pars[0], pars[1], pars[2], pars[3], pars[4], pars[5], pars[6], pars[7])
+		threads[3] = threading.Thread(target=exp4.run, args=(point_set4, True,))
+		threads[3].start()
 
-		exp = Experiment(pars[0], pars[1], pars[2], pars[3], pars[4], pars[5], pars[6], pars[7])
-		exp.run(gen_points("datasets-TP1/SR_div_noise.txt"), True)
-		exp.output("outputs/data" + str(i) + "." + str(j) + "_div_noise.txt", "outputs/stats" + str(i) + "." + str(j) + "_div_noise.txt")
+		for i in threads:
+			i.join()
+
+		exp1.output("outputs/data" + str(i) + "." + str(j) + "_circle.txt", "outputs/stats" + str(i) + "." + str(j) + "_circle.txt")
+		exp2.output("outputs/data" + str(i) + "." + str(j) + "_div.txt", "outputs/stats" + str(i) + "." + str(j) + "_div.txt")
+		exp3.output("outputs/data" + str(i) + "." + str(j) + "_ellipse_noise.txt", "outputs/stats" + str(i) + "." + str(j) + "_elipse_noise.txt")
+		exp4.output("outputs/data" + str(i) + "." + str(j) + "_div_noise.txt", "outputs/stats" + str(i) + "." + str(j) + "_div_noise.txt")
