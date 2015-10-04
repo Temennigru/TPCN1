@@ -2,6 +2,8 @@ import math
 from decimal import Decimal, getcontext
 import random
 from datetime import datetime
+import time
+import sys
 
 # Set seed as time
 random.seed(datetime.now())
@@ -72,12 +74,23 @@ class Node():
 		self.r = None
 		self.par = None
 		self.value = val
+		self.depth = None
+
+	def __to_string__(self):
+		print "self = " + str(self)
+		print "self.l = " + str(self.l)
+		print "self.r = " + str(self.r)
+		print "self.par = " + str(self.par)
+		print "self.value = " + str(self.value)
+		print "self.depth = " + str(self.depth)
+
 
 class Tree():
 
-	def __init__(self, val, randomness=0, max_depth=7, min_depth=2):
+	def __init__(self, val="", randomness=0, max_depth=7, min_depth=2):
 		self.nodes = []
 		self.root = Node(val)
+		self.root.depth = 0
 		self.nodes.append(self.root)
 		self.value_randomness = randomness
 		self.max_depth = max_depth
@@ -104,12 +117,18 @@ class Tree():
 
 
 	@staticmethod
-	def gen_rand_tree():
-		ret = Tree("")
+	def gen_rand_tree(randomness=0, max_depth=7, min_depth=1):
+		ret = Tree("", randomness, max_depth, min_depth)
 		ret.randomize_nodes(ret.root)
 		return ret
 
-	def randomize_nodes(self, node, depth=0):
+	def cpy(self):
+		ret = Tree()
+		ret.node_cpy(self.root, ret.root)
+		return ret
+
+	def randomize_nodes(self, node):
+		depth = node.depth
 		rand_ops = self.operators.keys()
 		rand_ops.extend(["x", "val"])
 		new_node_op = random.choice(rand_ops)
@@ -140,14 +159,65 @@ class Tree():
 		elif self.operator_par[node.value] == "lr":
 			self.insert(node, "", "l")
 			self.insert(node, "", "r")
-			self.randomize_nodes(node.l, depth + 1)
-			self.randomize_nodes(node.r, depth + 1)
+			self.randomize_nodes(node.l)
+			self.randomize_nodes(node.r)
 		elif self.operator_par[node.value] == "l":
 			self.insert(node, "", "l")
-			self.randomize_nodes(node.l, depth + 1)
+			self.randomize_nodes(node.l)
 		elif self.operator_par[node.value] == "r":
 			self.insert(node, "", "r")
-			self.randomize_nodes(node.r, depth + 1)
+			self.randomize_nodes(node.r)
+
+
+	def node_cpy(self, node, target_node):
+		target_node.value = node.value
+
+		# Clean up node
+		self.delete(target_node.l)
+		self.delete(target_node.r)
+
+		# Leaves
+		if target_node.value not in self.operator_par.keys():
+			return
+		# Nonterminal nodes
+		elif self.operator_par[target_node.value] == "lr":
+			self.insert(target_node, "", "l")
+			self.insert(target_node, "", "r")
+			self.node_cpy(node.l, target_node.l)
+			self.node_cpy(node.r, target_node.r)
+		elif self.operator_par[target_node.value] == "l":
+			self.insert(target_node, "", "l")
+			self.node_cpy(node.l, target_node.l)
+		elif self.operator_par[target_node.value] == "r":
+			self.insert(target_node, "", "r")
+			self.node_cpy(node.r, target_node.r)
+
+
+	# TODO: implement min depth
+	def get_random_node(self, max_depth=0):
+		if max_depth <= 0:
+			return random.choice(self.nodes)
+
+
+		node = self.root
+
+		for i in range(max_depth - 1):
+			# Leaves
+			if node.value not in self.operator_par.keys():
+				return node
+			# Nonterminal nodes
+			elif self.operator_par[node.value] == "lr":
+				choice = random.choice([0, 1])
+				if choice == 0:
+					node = node.l
+				else:
+					node = node.r
+			elif self.operator_par[node.value] == "l":
+				node = node.l
+			elif self.operator_par[node.value] == "r":
+				node = node.r
+		return node
+
 
 	def get_depth(self, node):
 		depth = 0
@@ -162,7 +232,7 @@ class Tree():
 			print "Error: parent node does not exist"
 			raise
 		new = Node(val)
-		self.nodes.append(Node(val))
+		self.nodes.append(new)
 		new.par = node
 		if pos == "l":
 			if node.l != None:
@@ -176,7 +246,7 @@ class Tree():
 				raise
 			node.r = new
 
-		self.nodes.append(new)
+		new.depth = new.par.depth + 1
 		return new
 
 	# Delete node and children
@@ -190,7 +260,7 @@ class Tree():
 			node.par.r = None
 		else:
 			print "Error: node structure is corrupted"
-			exit()
+			raise
 		self.delete(node.l)
 		self.delete(node.r)
 
@@ -223,6 +293,32 @@ class Tree():
 	def to_string(self):
 		return self.__to_string__(self.root)
 
+	def print_tree(self):
+		str = ""
+		thislevel = [self.root]
+		depth = 1
+		while thislevel:
+			space = ""
+			for i in range(int(math.ceil((2**self.max_depth)/(2**(depth - 2))))):
+				space += "         "
+			nextlevel = list()
+			for n in thislevel:
+				if not n:
+					str += space + "None"
+				elif n.value != "":
+					str += space + n.value
+					nextlevel.append(n.l)
+					nextlevel.append(n.r)
+				else:
+					str += space + "Empty",
+					nextlevel.append(n.l)
+					nextlevel.append(n.r)
+			str += "\n"
+			depth += 1
+			thislevel = nextlevel
+
+
+
 	#def from_string(string):
 
 	# Can evaluate nonfunctions
@@ -240,7 +336,7 @@ class Tree():
 			r = self.__eval__(x, node.r)
 			ret = []
 			for i in l:
-				for j in r:			
+				for j in r:
 					try:
 						ret.extend(self.operators[node.value](i, j))
 					except ValueError:
@@ -292,13 +388,195 @@ def fitness(tree, point_list):
 
 def mutate(tree):
 	node = random.choice(tree.nodes)
-	tree.randomize_nodes(node, tree.get_depth(node))
+	tree.randomize_nodes(node)
 
-tree = Tree.gen_rand_tree()
-print tree.to_string()
-print tree.eval(1)
-print fitness(tree, [[1, 2], [2, 3], [3, 4]])
-mutate(tree)
-print tree.to_string()
-print tree.eval(1)
-print fitness(tree, [[1, 2], [2, 3], [3, 4]])
+def crossover(tree, target_tree):
+	# Pick random node in tree
+	node = random.choice(tree.nodes)
+
+	# Copy node into random node with same depth
+	dep = node.depth
+	tgt_node = target_tree.get_random_node(dep)
+	target_tree.node_cpy(node, tgt_node)
+
+def reproduce(tree):
+	return tree.cpy()
+
+def split_tournaments(individual_list, tournament_size):
+	result_list = []
+	while individual_list:
+		result_list.append(individual_list[:tournament_size])
+		individual_list = individual_list[tournament_size:]
+	return result_list
+
+
+
+def tournament(individual_list, number_of_winners, tournament_size):
+	# Copy individual list
+	copy = list(individual_list)
+
+	# Shuffle copy
+	random.shuffle(copy)
+	# Split list into tournaments
+	tournaments = list(split_tournaments(individual_list, tournament_size))
+	winners = []
+
+	if number_of_winners > len(tournaments) or number_of_winners <= 0 or tournament_size <= 0:
+		print "Error: there can not be enough winners"
+		raise
+	# Start tournaments
+	for i in range(number_of_winners):
+		current_tournament = tournaments[i]
+		# Separate invalids from valids
+		invalids = [j for j in current_tournament if j[1]]
+		valids = [j for j in current_tournament if not j[1]]
+
+		# Sort both
+		invalids.sort(key=lambda tup: tup[0])
+		valids.sort(key=lambda tup: tup[0])
+
+		# If no valids, chose an invalid
+		if not valids:
+			winners.append(invalids[0])
+		else:
+			winners.append(valids[0])
+
+	return winners
+
+def gen_initial_population(size):
+	ret = []
+	for i in range(size):
+		tree = Tree.gen_rand_tree()
+		ret.append(tree)
+
+	return ret
+
+def gen_next_population(population, point_set, elitism, tournament_size, mutate_chance, reproduce_chance, crossover_chance):
+	# Normalize
+	mutate_chance = mutate_chance / (mutate_chance + reproduce_chance + crossover_chance)
+	reproduce_chance = reproduce_chance / (mutate_chance + reproduce_chance + crossover_chance)
+	crossover_chance = crossover_chance / (mutate_chance + reproduce_chance + crossover_chance)
+
+	num = len(population)
+
+	fitnesses = []
+
+	for i in population:
+		fitnesses.append(fitness(i, point_set))
+
+	# Set pos in fitnesses
+	for i in range(len(fitnesses)):
+		fitnesses[i] = (fitnesses[i][0], fitnesses[i][1], i)
+
+	new_population = []
+
+	best = None
+
+	# Find best
+	for i in range(num):
+		if best == None or best[1] == True and fitnesses[i][1] == False or best[0] > fitnesses[i][0]:
+			best = fitnesses[i]
+
+	if elitism:
+		# Keep best
+		new_population.append(population[best[2]])
+		num -= 1
+
+
+	# Create new individuals
+
+	for i in range(num):
+		roll = random.random()
+		if roll >= 0 and roll < mutate_chance:
+			new = population[tournament(fitnesses, 1, tournament_size)[0][2]].cpy()
+			mutate(new)
+			new_population.append(new)
+		elif roll >= mutate_chance and roll < mutate_chance + reproduce_chance:
+			new = reproduce(population[tournament(fitnesses, 1, tournament_size)[0][2]])
+			new_population.append(new)
+		elif roll >= mutate_chance + reproduce_chance and roll <= 1:
+			winners = tournament(fitnesses, 2, tournament_size)
+			new = population[winners[0][2]].cpy()
+			crossover(population[winners[1][2]], new)
+			new_population.append(new)
+
+	return (best, population[best[2]], new_population)
+
+class Experiment():
+	def __init__(self, elitism, tournament_size, 
+			mutate_chance, reproduce_chance, crossover_chance,
+			pop_size, convergence_factor, max_generations):
+		
+		self.elitism = elitism
+		self.tournament_size = tournament_size
+		self.mutate_chance = mutate_chance
+		self.reproduce_chance = reproduce_chance
+		self.crossover_chance = crossover_chance
+		self.pop_size = pop_size
+		self.convergence_factor = convergence_factor
+		self.max_generations = max_generations
+		self.bests = []
+		self.pop = []
+		self.time = 0
+
+	def run(point_set, verbose=False):
+		start_time = time.time()
+
+		self.bests = []
+		self.pop = gen_initial_population(pop_size)
+		# Last generation is discarded because I am lazy
+		for i in range(max_generations + 1):
+			if verbose: print "Generating population ", i
+			pop = gen_next_population(pop, point_set, self.elitism, self.tournament_size,
+				self.mutate_chance, self.reproduce_chance, self.crossover_chance)
+			last_best = (pop[0], pop[1])
+			pop = pop[2]
+			self.bests.append(last_best)
+
+
+		self.time = time.time() - start_time
+
+	def output(data_filename, stats_filename):
+		data = open(data_filename, "w")
+		stats = open(stats_filename, "w")
+
+		for i in self.bests:
+			data.write(i[1].to_string() + "\n")
+			data.write(i[1].print_tree() + "\n")
+			data.write(str(i[0]) + "\n")
+
+		stats.write("elitism: " + str(self.elitism) + "\n")
+		stats.write("tournament_size: " + str(self.tournament_size) + "\n")
+		stats.write("mutate_chance: " + str(self.mutate_chance) + "\n")
+		stats.write("reproduce_chance: " + str(self.reproduce_chance) + "\n")
+		stats.write("crossover_chance: " + str(self.crossover_chance) + "\n")
+		stats.write("pop_size: " + str(self.pop_size) + "\n")
+		stats.write("convergence_factor: " + str(self.convergence_factor) + "\n")
+		stats.write("max_generations: " + str(self.max_generations) + "\n")
+		stats.write("time: " + str(self.time) + "\n")
+
+
+
+
+
+
+
+
+print "---------------------------------------------------------------"
+
+pop = gen_initial_population(30)
+point_set = [[1,2], [2, 3], [3, 4], [4, 5]]
+bests = []
+for i in range(1000):
+	print "Generating population ", i
+	pop = gen_next_population(pop, point_set, True, 10, 40, 40, 20)
+	last_best = (pop[0], pop[1])
+	pop = pop[2]
+	bests.append(last_best)
+
+for i in bests:
+	print i[1].to_string()
+	print i[1].print_tree()
+	print i[0]
+
+
