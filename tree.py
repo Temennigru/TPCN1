@@ -588,7 +588,7 @@ class Experiment():
 
 
 for i in range(5):
-	for j in range(10):
+	for j in range(1):
 
 		print "---------------------------------------------------------------"
 		pars = []
@@ -598,37 +598,37 @@ for i in range(5):
 
 		# Base test
 		if i == 0:
-			pars = [True, 5, 5, 5, 90, 10, 25, 100]
+			pars = [True, 5, 5, 5, 90, 25, 5, 20]
 		# Remove elitism
 		elif i == 1:
-			pars = [False, 5, 5, 5, 90, 10, 25, 100]
+			pars = [False, 5, 5, 5, 90, 25, 5, 20]
 		# Increase tournament 1
 		elif i == 2:
-			pars = [True, 5, 5, 5, 90, 10, 25, 100]
+			pars = [True, 5, 5, 5, 90, 25, 5, 20]
 		# Increase tournament 2
 		elif i == 3:
-			pars = [True, 10, 5, 5, 90, 10, 25, 100]
+			pars = [True, 10, 5, 5, 90, 25, 5, 20]
 		# Increase tournament 3
 		elif i == 4:
-			pars = [True, 15, 5, 5, 90, 10, 25, 100]
+			pars = [True, 15, 5, 5, 90, 25, 5, 20]
 		# Change probability 1
 		elif i == 5:
-			pars = [True, 5, 20, 5, 75, 10, 25, 100]
+			pars = [True, 5, 20, 5, 75, 25, 5, 20]
 		# Change probability 2
 		elif i == 6:
-			pars = [True, 5, 45, 5, 50, 10, 25, 100]
+			pars = [True, 5, 45, 5, 50, 25, 5, 20]
 		# Increase pop 1
 		elif i == 6:
-			pars = [True, 5, 5, 5, 90, 10, 50, 100]
+			pars = [True, 5, 5, 5, 90, 50, 5, 20]
 		# Increase pop 2
 		elif i == 6:
-			pars = [True, 5, 5, 5, 90, 10, 100, 100]
+			pars = [True, 5, 5, 5, 90, 75, 5, 20]
 		# Increase convergence
 		elif i == 6:
-			pars = [True, 5, 5, 5, 90, 20, 25, 100]
+			pars = [True, 5, 5, 5, 90, 25, 10, 20]
 		# Increase generations
 		elif i == 6:
-			pars = [True, 5, 5, 5, 90, 20, 25, 200] 
+			pars = [True, 5, 5, 5, 90, 25, 10, 50] 
 
 
 
