@@ -502,6 +502,22 @@ def gen_next_population(population, point_set, elitism, tournament_size, mutate_
 
 	return (best, population[best[2]], new_population)
 
+def gen_points(input_name):
+	f = open(input_name, "r")
+	points = []
+	for i in f:
+		strings = [s for s in i.split(" ")]
+		point = []
+		for j in strings:
+			try:
+				point.append(float(j))
+			except ValueError:
+				continue
+			if len(point) >= 2:
+				break
+		points.append(point)
+	return points
+
 class Experiment():
 	def __init__(self, elitism, tournament_size, 
 			mutate_chance, reproduce_chance, crossover_chance,
@@ -519,24 +535,32 @@ class Experiment():
 		self.pop = []
 		self.time = 0
 
-	def run(point_set, verbose=False):
+	def run(self, point_set, verbose=False):
 		start_time = time.time()
 
 		self.bests = []
-		self.pop = gen_initial_population(pop_size)
+		self.pop = gen_initial_population(self.pop_size)
+		convergence = 0
 		# Last generation is discarded because I am lazy
-		for i in range(max_generations + 1):
+		for i in range(self.max_generations + 1):
 			if verbose: print "Generating population ", i
-			pop = gen_next_population(pop, point_set, self.elitism, self.tournament_size,
+			self.pop = gen_next_population(self.pop, point_set, self.elitism, self.tournament_size,
 				self.mutate_chance, self.reproduce_chance, self.crossover_chance)
-			last_best = (pop[0], pop[1])
-			pop = pop[2]
+			last_best = (self.pop[0], self.pop[1])
+			self.pop = self.pop[2]
 			self.bests.append(last_best)
+			if i > 0 and self.bests[i][0][0] == self.bests[i - 1][0][0]:
+				convergence += 1
+				# Converged
+				if convergence >= self.convergence_factor:
+					break
+			else:
+				convergence = 0
 
 
 		self.time = time.time() - start_time
 
-	def output(data_filename, stats_filename):
+	def output(self, data_filename, stats_filename):
 		data = open(data_filename, "w")
 		stats = open(stats_filename, "w")
 
@@ -562,21 +586,67 @@ class Experiment():
 
 
 
-print "---------------------------------------------------------------"
 
-pop = gen_initial_population(30)
-point_set = [[1,2], [2, 3], [3, 4], [4, 5]]
-bests = []
-for i in range(1000):
-	print "Generating population ", i
-	pop = gen_next_population(pop, point_set, True, 10, 40, 40, 20)
-	last_best = (pop[0], pop[1])
-	pop = pop[2]
-	bests.append(last_best)
+for i in range(5):
+	for j in range(10):
 
-for i in bests:
-	print i[1].to_string()
-	print i[1].print_tree()
-	print i[0]
+		print "---------------------------------------------------------------"
+		pars = []
+
+		# elitism, tournament_size, mutate_chance, reproduce_chance, crossover_chance,
+		# pop_size, convergence_factor, max_generations
+
+		# Base test
+		if i == 0:
+			pars = [True, 5, 5, 5, 90, 10, 25, 100]
+		# Remove elitism
+		elif i == 1:
+			pars = [False, 5, 5, 5, 90, 10, 25, 100]
+		# Increase tournament 1
+		elif i == 2:
+			pars = [True, 5, 5, 5, 90, 10, 25, 100]
+		# Increase tournament 2
+		elif i == 3:
+			pars = [True, 10, 5, 5, 90, 10, 25, 100]
+		# Increase tournament 3
+		elif i == 4:
+			pars = [True, 15, 5, 5, 90, 10, 25, 100]
+		# Change probability 1
+		elif i == 5:
+			pars = [True, 5, 20, 5, 75, 10, 25, 100]
+		# Change probability 2
+		elif i == 6:
+			pars = [True, 5, 45, 5, 50, 10, 25, 100]
+		# Increase pop 1
+		elif i == 6:
+			pars = [True, 5, 5, 5, 90, 10, 50, 100]
+		# Increase pop 2
+		elif i == 6:
+			pars = [True, 5, 5, 5, 90, 10, 100, 100]
+		# Increase convergence
+		elif i == 6:
+			pars = [True, 5, 5, 5, 90, 20, 25, 100]
+		# Increase generations
+		elif i == 6:
+			pars = [True, 5, 5, 5, 90, 20, 25, 200] 
 
 
+
+
+
+
+		exp = Experiment(pars[0], pars[1], pars[2], pars[3], pars[4], pars[5], pars[6], pars[7])
+		exp.run(gen_points("datasets-TP1/SR_circle.txt"), True)
+		exp.output("outputs/data" + str(i) + "." + str(j) + "_circle.txt", "outputs/stats" + str(i) + "." + str(j) + "_circle.txt")
+
+		exp = Experiment(pars[0], pars[1], pars[2], pars[3], pars[4], pars[5], pars[6], pars[7])
+		exp.run(gen_points("datasets-TP1/SR_div.txt"), True)
+		exp.output("outputs/data" + str(i) + "." + str(j) + "_div.txt", "outputs/stats" + str(i) + "." + str(j) + "_div.txt")
+
+		exp = Experiment(pars[0], pars[1], pars[2], pars[3], pars[4], pars[5], pars[6], pars[7])
+		exp.run(gen_points("datasets-TP1/SR_elipse_noise.txt"), True)
+		exp.output("outputs/data" + str(i) + "." + str(j) + "_elipse_noise.txt", "outputs/stats" + str(i) + "." + str(j) + "_elipse_noise.txt")
+
+		exp = Experiment(pars[0], pars[1], pars[2], pars[3], pars[4], pars[5], pars[6], pars[7])
+		exp.run(gen_points("datasets-TP1/SR_div_noise.txt"), True)
+		exp.output("outputs/data" + str(i) + "." + str(j) + "_div_noise.txt", "outputs/stats" + str(i) + "." + str(j) + "_div_noise.txt")
