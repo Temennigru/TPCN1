@@ -295,28 +295,29 @@ class Tree():
 		return self.__to_string__(self.root)
 
 	def print_tree(self):
-		str = ""
+		string = ""
 		thislevel = [self.root]
 		depth = 1
 		while thislevel:
 			space = ""
 			for i in range(int(math.ceil((2**self.max_depth)/(2**(depth - 2))))):
-				space += "         "
+				space += "    "
 			nextlevel = list()
 			for n in thislevel:
 				if not n:
-					str += space + "None"
+					string += space + "None"
 				elif n.value != "":
-					str += space + n.value
+					string += space + n.value
 					nextlevel.append(n.l)
 					nextlevel.append(n.r)
 				else:
-					str += space + "Empty",
+					string += space + "Empty",
 					nextlevel.append(n.l)
 					nextlevel.append(n.r)
-			str += "\n"
+			string += "\n"
 			depth += 1
 			thislevel = nextlevel
+		return string
 
 
 
@@ -602,37 +603,37 @@ for i in range(5):
 
 		# Base test
 		if i == 0:
-			pars = [True, 5, 5, 5, 90, 25, 5, 20]
+			pars = [True, 5, 5, 5, 90, 10, 10, 50]
 		# Remove elitism
 		elif i == 1:
-			pars = [False, 5, 5, 5, 90, 25, 5, 20]
+			pars = [False, 5, 5, 5, 90, 10, 10, 50]
 		# Increase tournament 1
 		elif i == 2:
-			pars = [True, 5, 5, 5, 90, 25, 5, 20]
+			pars = [True, 5, 5, 5, 90, 10, 10, 50]
 		# Increase tournament 2
 		elif i == 3:
-			pars = [True, 10, 5, 5, 90, 25, 5, 20]
+			pars = [True, 10, 5, 5, 90, 10, 10, 50]
 		# Increase tournament 3
 		elif i == 4:
-			pars = [True, 15, 5, 5, 90, 25, 5, 20]
+			pars = [True, 15, 5, 5, 90, 10, 10, 50]
 		# Change probability 1
 		elif i == 5:
-			pars = [True, 5, 20, 5, 75, 25, 5, 20]
+			pars = [True, 5, 20, 5, 75, 10, 10, 50]
 		# Change probability 2
 		elif i == 6:
-			pars = [True, 5, 45, 5, 50, 25, 5, 20]
+			pars = [True, 5, 45, 5, 50, 10, 10, 50]
 		# Increase pop 1
 		elif i == 6:
-			pars = [True, 5, 5, 5, 90, 50, 5, 20]
+			pars = [True, 5, 5, 5, 90, 15, 10, 50]
 		# Increase pop 2
 		elif i == 6:
-			pars = [True, 5, 5, 5, 90, 75, 5, 20]
+			pars = [True, 5, 5, 5, 90, 20, 10, 50]
 		# Increase convergence
 		elif i == 6:
-			pars = [True, 5, 5, 5, 90, 25, 10, 20]
+			pars = [True, 5, 5, 5, 90, 10, 20, 50]
 		# Increase generations
 		elif i == 6:
-			pars = [True, 5, 5, 5, 90, 25, 10, 50] 
+			pars = [True, 5, 5, 5, 90, 10, 20, 100] 
 
 
 
